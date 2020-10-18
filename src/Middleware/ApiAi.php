@@ -19,7 +19,7 @@ class ApiAi implements MiddlewareInterface
     /** @var HttpInterface */
     protected $http;
 
-    /** @var \stdClass */
+    /** @var stdClass */
     protected $response;
 
     /** @var string */
@@ -30,6 +30,9 @@ class ApiAi implements MiddlewareInterface
 
     /** @var bool */
     protected $listenForAction = false;
+
+    /** @var bool */
+    protected $resetContexts = false;
 
     /**
      * Wit constructor.
@@ -68,9 +71,17 @@ class ApiAi implements MiddlewareInterface
     }
 
     /**
+     * Set Reset Contexts Flag.
+     */
+    public function setResetContexts(bool $value)
+    {
+        $this->resetContexts = $value;
+    }
+
+    /**
      * Perform the API.ai API call and cache it for the message.
      * @param  \BotMan\BotMan\Messages\Incoming\IncomingMessage $message
-     * @return \stdClass
+     * @return stdClass
      */
     protected function getResponse(IncomingMessage $message)
     {
@@ -78,6 +89,7 @@ class ApiAi implements MiddlewareInterface
             'query' => [$message->getText()],
             'sessionId' => md5($message->getConversationIdentifier()),
             'lang' => $this->lang,
+            'resetContexts' => $this->resetContexts,
         ], [
             'Authorization: Bearer '.$this->token,
             'Content-Type: application/json; charset=utf-8',
@@ -115,10 +127,10 @@ class ApiAi implements MiddlewareInterface
     {
         $response = $this->getResponse($message);
 
-        $reply = $response->result->fulfillment->speech ?? '';
-        $action = $response->result->action ?? '';
+        $reply = isset($response->result->fulfillment->speech) ? $response->result->fulfillment->speech : '';
+        $action = isset($response->result->action) ? $response->result->action : '';
         $actionIncomplete = isset($response->result->actionIncomplete) ? (bool) $response->result->actionIncomplete : false;
-        $intent = $response->result->metadata->intentName ?? '';
+        $intent = isset($response->result->metadata->intentName) ? $response->result->metadata->intentName : '';
         $parameters = isset($response->result->parameters) ? (array) $response->result->parameters : [];
         $responseMessages = isset($response->result->fulfillment->messages) ? json_decode(json_encode($response->result->fulfillment->messages), true) : [];
         $contexts = isset($response->result->contexts) ? json_decode(json_encode($response->result->contexts), true) : [];
