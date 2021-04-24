@@ -44,7 +44,9 @@ class RedisStorage implements StorageInterface
      */
     public function save(array $data, $key)
     {
-        $this->redis->set($this->decorateKey($key), $data);
+        $saved = $this->get($key)->merge($data);
+
+        $this->redis->set($this->decorateKey($key), $saved->all());
     }
 
     /**

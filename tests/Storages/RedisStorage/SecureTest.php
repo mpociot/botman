@@ -86,7 +86,7 @@ class SecureTest extends TestCase
         $storage->save($data1, $key1);
 
         $key2 = 'key2';
-        $data2 = ['foo' => 'alice', 'bar' => new \DateTime(), 1 => 'bob'];
+        $data2 = ['foo' => 'alice', 'bar' => new \DateTime()];
         $storage->save($data2, $key2);
 
         $items = $storage->all();
