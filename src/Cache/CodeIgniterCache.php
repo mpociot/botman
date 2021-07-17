@@ -3,20 +3,23 @@
 namespace BotMan\BotMan\Cache;
 
 use BotMan\BotMan\Interfaces\CacheInterface;
+use CI_Cache;
 
 class CodeIgniterCache implements CacheInterface
 {
     /**
-     * @var array
+     * The codeigniter cache driver.
+     *
+     * @var \CI_Cache
      */
-    private $cache;
+    private $driver;
 
     /**
-     * @param array $driver
+     * @param \CI_Cache $driver
      */
-    public function __construct($driver)
+    public function __construct(CI_Cache $driver)
     {
-        $this->cache = $driver;
+        $this->driver = $driver;
     }
 
     /**
@@ -25,9 +28,9 @@ class CodeIgniterCache implements CacheInterface
      * @param  string $key
      * @return bool
      */
-    public function has($key)
+    public function has(string $key): bool
     {
-        return $this->cache->get($key) !== false;
+        return $this->driver->get($key) !== false;
     }
 
     /**
@@ -37,10 +40,10 @@ class CodeIgniterCache implements CacheInterface
      * @param  mixed $default
      * @return mixed
      */
-    public function get($key, $default = null)
+    public function get(string $key, $default = null)
     {
         if ($this->has($key)) {
-            return $this->cache->get($key);
+            return $this->driver->get($key);
         }
 
         return $default;
@@ -53,16 +56,16 @@ class CodeIgniterCache implements CacheInterface
      * @param  mixed $default
      * @return mixed
      */
-    public function pull($key, $default = null)
+    public function pull(string $key, $default = null)
     {
-        if ($this->has($key)) {
-            $cached = $this->cache->get($key);
-            $this->cache->delete($key);
-
-            return $cached;
+        if (!$this->has($key)) {
+            return $default;
         }
 
-        return $default;
+        $cached = $this->driver->get($key);
+        $this->driver->delete($key);
+
+        return $cached;
     }
 
     /**
@@ -73,7 +76,7 @@ class CodeIgniterCache implements CacheInterface
      * @param  \DateTime|int $minutes
      * @return void
      */
-    public function put($key, $value, $minutes)
+    public function put(string $key, $value, $minutes)
     {
         if ($minutes instanceof \Datetime) {
             $seconds = $minutes->getTimestamp() - time();
@@ -81,6 +84,6 @@ class CodeIgniterCache implements CacheInterface
             $seconds = $minutes * 60;
         }
 
-        $this->cache->save($key, $value, $seconds);
+        $this->driver->save($key, $value, $seconds);
     }
 }
